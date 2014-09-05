@@ -1,0 +1,396 @@
+---
+title       : A workflow with
+subtitle    : BEFdata + rBEFdata + taxize
+author      : Claas-Thido Pfaff
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+
+```{r setup, cache = F, include = F, eval = T}
+# install.packages("devtools")
+require(devtools)
+# install_github(username = "befdata", repo = "rbefdata", subdir = "rbefdata")
+require(rbefdata)
+#devtools::install_github(c("sckott/XMLSchema", "sckott/SSOAP"))
+#devtools::install_github("taxize", "ropensci")
+#install.packages("taxize")
+require(taxize)
+#remove.packages("taxize")
+# install.packages("gdata")
+require(gdata)
+# set options
+options("width"=155)
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+```
+
+## Install packages
+
+* rbefdata (interface to BEFdata)
+
+```{r install_rbefdata, eval = F}
+install.packages("rbefdata")
+```
+
+* taxize (taxonomy tasks)
+
+```{r install_taxize, eval = F}
+install.packages("taxize")
+```
+
+* Trim (leading/trailing spaces)
+
+```{r install_gdata, eval = F}
+install.packages("gdata")
+# or use that one as trimmer:
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+```
+
+---
+
+## List Options (rbefdata)
+
+
+```{r eval = T}
+require(rbefdata)
+bef.options()
+```
+
+---
+
+## Set Options (rbefdata)
+
+- The URL ([Workshop Portal](http://stage.china.befdata.biow.uni-leipzig.de))
+
+```{r eval = T}
+bef.options(url = "http://stage.china.befdata.biow.uni-leipzig.de")
+```
+
+- The credentials ([Your profile](http://stage.china.befdata.biow.uni-leipzig.de/profile))
+
+```{r eval = T}
+bef.options(user_credentials = "y9H5uaC65fr1qCNdk0H1")
+```
+
+---
+  
+## Get data
+  
+* Get dataset from [proposal](http://stage.china.befdata.biow.uni-leipzig.de/paperproposals/1) with id #1 
+
+```{r get_dataset, eval = T, cache = T}
+datasets = bef.portal.get.datasets.for_proposal(id = 1)
+length(datasets)
+titles = sapply(datasets, function(x) attributes(x)$title)
+titles
+dataset = datasets[[1]]
+```
+
+---
+
+## Inspect the data
+
+* Inspect the dataset (metadata)
+  
+```{r get_dataset_metadata, eval = T}
+attributes(dataset)$title
+names(attributes(dataset))
+```
+
+---
+
+## Inspect the data
+
+* About the spces column and their description
+
+```{r get_column_description, eval = T, tidy=FALSE}
+names(dataset)
+attributes(dataset)$column$description
+```
+
+---
+
+## Species names
+
+* Prepare species list
+
+```{r extract_species_list, eval = T}
+require(gdata)
+# or define trimmer
+trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+species = trim(dataset$species)
+unique_species = unique(as.character(species))
+head(unique_species, 7)
+```
+
+* Load ([taxize](http://ropensci.org/tutorials/taxize_tutorial.html))
+
+```{r require_taxize, eval = F}
+require(taxize)
+```
+
+---
+
+## Species names
+
+* Taxize offers access to databases like: 
+    - Integrated Taxonomic Information System [itis](http://www.itis.gov/) 
+    - National Center for Biotechnology Information [ncbi](http://www.ncbi.nlm.nih.gov/) 
+    - International Union for Conservation of Nature [iucn](http://www.iucn.org/)
+
+* But that is not all (e.g create phylogeny tree, see [tutorial](http://ropensci.org/tutorials/taxize_tutorial.html))
+
+* Example for species resolving
+
+```{r example_species_name_resolving, eval = T, cache = T, message = F}
+species_list = c("Helianthus annuus", "Pinus contort")
+query_response = tnrs(query = species_list, source = "iPlant_TNRS")[, -c(6:7)]
+query_response
+```
+
+--- bg:#EEE
+
+## Your turn
+
+* Start R-Studio
+* Load packages
+
+```
+require(rbefdata)
+require(taxize)
+```
+
+* Set options (URL, Credentials)
+
+```
+bef.options()
+```
+
+* Resolve all the species in vector unique_species (unique)
+
+```{r eval = F}
+tnrs(query = ...)
+```
+
+* Find the entries that need correction (Hint: score! with subset())
+
+---
+
+## A solution 
+
+* Check the unique names of our species list
+
+```{r resolv_our_unique_names, eval = T, message = F, cache = T}
+query_response = tnrs(query = unique_species)[, -c(6:7)]
+head(query_response,9)[c("submittedname", "acceptedname", "score")]
+```
+
+--- 
+
+## A solution 
+
+* Pick the entries that are lower than 1
+
+```{r find_potential_wrong, eval = T, message = F, cache = T}
+query_response_need_attention = unique(subset(query_response, score < 1))
+head(query_response_need_attention, 7)
+```
+
+--- 
+
+## Match back and combine
+
+* Match species to submitted names
+
+```{r match_back_corrected_species_one, eval = T, message = F, cache = T}
+corrected_dataset = merge(dataset, query_response_need_attention[c("submittedname", "acceptedname")], 
+      by.x = "species", 
+      by.y = "submittedname", all.x = T)
+
+head(corrected_dataset)
+```
+
+---
+
+## Match back and combine 
+
+* merge function picks from vectors (if else)
+
+```{r merge_function, eval = T, cache = T}
+merge_em <- function(base_vec, merge_vec) {
+  output = vector()
+  for(i in 1:length(base_vec)) {
+    if(is.na(base_vec[i])) {
+      output[i] = merge_vec[i]
+    } else {
+      output[i] = base_vec[i]
+    }
+  }
+  return(output)
+}
+```
+
+---
+
+## Match back and combine 
+
+* Define base and merge vector
+
+```{r base_and_mergin}
+base = corrected_dataset$acceptedname
+mergein = as.character(species)
+new = base[is.na(base)] <- mergein[is.na(base)]
+```
+
+---
+
+## Match back and combine
+
+* create new dataframe
+
+```{r prepare_merge, eval = T}
+merged_names = merge_em(base_vec = base, merge_vec = mergein)
+corrected_dataset = data.frame(dataset, species_corrected = merged_names)
+head(corrected_dataset, 8)
+```
+
+---
+
+## Upload dataset
+
+* push back a corrected version to BEFdata
+
+* Please use own title if you execute this step 
+
+```{r upload_corrected, eval = F}
+title = "Dataset with errors in tree species (corrected)"
+bef.portal.upload.dataset(dataset = corrected_dataset, dataset_title = title)
+```
+
+```
+Your data has been uploaded successfully!
+You can find your dataset now under the id:3
+```
+
+---
+
+## Get higher taxonomic names
+
+* Use taxize to retrive higher taxon names
+
+* Create a new dataframe 
+     - corrected unique species names 
+     - order
+     - family
+     - genus
+
+* Can be used to calculate phylogenetic diversity
+
+---
+
+## Get higher taxonomic names
+
+* Example on retrieving classifications
+
+```{r example_higher_names_one, eval = T, message = F}
+species_examples = c("Homo sapiens", "Rattus rattus")
+```
+
+* The databases can be e.g. [itis](http://www.itis.gov/) or [ncbi](http://www.ncbi.nlm.nih.gov/)
+
+```{r example_higher_names_two, eval = T, message = F, cache = T}
+classification_list = classification(species_examples, db = "itis")
+classification_list[[1]]
+```
+
+---
+
+## Get higher taxonomic names
+
+* Get only parts of intrest
+
+```{r example_higher_names_three, eval = T, message = F, cache = T}
+tax_name(query = "Homo Sapiens", get = "genus", db = "ncbi")
+tax_name(query = species_examples, get = "family", db = "ncbi")
+```
+
+--- bg:#EEE
+
+## Your turn
+
+* Get the order, family and genus from ncbi for unique corrected species
+    
+* Be nice and only query server once!
+    - do not use: tax_name(...)
+    - use classification(...)
+
+* Hint: use R apply functions
+    
+* When finished upload the dataset to the portal!
+
+---
+
+## A solution
+
+* Get: 
+    - order, family and genus (unique corrected species use "ncbi")
+
+```{r solution_higher_names, eval = T, tidy = F, cache = T, message = F}
+species_list = unique(as.character(corrected_dataset$species_corrected))
+classification_species = classification(species_list, db = "ncbi")
+```
+
+* Extract (order):
+
+```{r extract, eval = T, cache = T, tidy = F}
+extraction_ncbi_order = sapply(classification_species, function(x) { 
+   if(length(x) != 2){NA}else{subset(x, x$"rank" == "order")}$"name"
+  })
+```
+
+---
+
+## A solution
+
+* Extract (family):
+
+```{r extract_two, eval = T, cache = T, tidy = F}
+extraction_ncbi_family = sapply(classification_species, function(x) {
+   if(length(x) != 2){NA}else{subset(x, x$"rank" == "family")}$"name" 
+  }) 
+```
+
+* Extract (genus):
+
+```{r extract_three, eval = T, cache = T, tidy = F}
+extraction_ncbi_genus = sapply(classification_species, function(x) { 
+   if(length(x) != 2){NA}else{subset(x, x$"rank" == "genus")}$"name"
+  })
+```
+
+---
+
+## A solution
+
+* Create data frame:
+
+```{r show_solution_dataset, eval = T, cache = T, message = F}
+extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, extraction_ncbi_family, extraction_ncbi_genus)
+species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
+head(species_taxonic, 5)
+```
+
+* Upload:
+
+```{r solution_upload_dataset, eval = F}
+bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = "Taxonomic information for species in ...")
+```
+
+---
+
+## Thanks four your attention 

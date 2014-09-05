@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>A workflow with</title>
+  <meta charset="utf-8">
+  <meta name="description" content="A workflow with">
+  <meta name="author" content="Claas-Thido Pfaff">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>A workflow with</h1>
+    <h2>BEFdata + rBEFdata + taxize</h2>
+    <p>Claas-Thido Pfaff<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Install packages</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>rbefdata (interface to BEFdata)</li>
+</ul>
+
+<pre><code class="r">install.packages(&quot;rbefdata&quot;)
+</code></pre>
+
+<ul>
+<li>taxize (taxonomy tasks)</li>
+</ul>
+
+<pre><code class="r">install.packages(&quot;taxize&quot;)
+</code></pre>
+
+<ul>
+<li>Trim (leading/trailing spaces)</li>
+</ul>
+
+<pre><code class="r">install.packages(&quot;gdata&quot;)
+# or use that one as trimmer:
+trim &lt;- function (x) gsub(&quot;^\\s+|\\s+$&quot;, &quot;&quot;, x)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>List Options (rbefdata)</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">require(rbefdata)
+bef.options()
+</code></pre>
+
+<pre><code>## $url
+## [1] &quot;http://china.befdata.biow.uni-leipzig.de&quot;
+## 
+## $tematres_url
+## [1] &quot;http://tematres.befdata.biow.uni-leipzig.de/vocab/index.php&quot;
+## 
+## $tematres_service_url
+## [1] &quot;http://tematres.befdata.biow.uni-leipzig.de/vocab/services.php&quot;
+## 
+## $download_dir
+## [1] &quot;downloads&quot;
+## 
+## $user_credentials
+## [1] &quot;&quot;
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Set Options (rbefdata)</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>The URL (<a href="http://stage.china.befdata.biow.uni-leipzig.de">Workshop Portal</a>)</li>
+</ul>
+
+<pre><code class="r">bef.options(url = &quot;http://stage.china.befdata.biow.uni-leipzig.de&quot;)
+</code></pre>
+
+<ul>
+<li>The credentials (<a href="http://stage.china.befdata.biow.uni-leipzig.de/profile">Your profile</a>)</li>
+</ul>
+
+<pre><code class="r">bef.options(user_credentials = &quot;y9H5uaC65fr1qCNdk0H1&quot;)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Get data</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Get dataset from <a href="http://stage.china.befdata.biow.uni-leipzig.de/paperproposals/1">proposal</a> with id #1 </li>
+</ul>
+
+<pre><code class="r">datasets = bef.portal.get.datasets.for_proposal(id = 1)
+length(datasets)
+</code></pre>
+
+<pre><code>## [1] 2
+</code></pre>
+
+<pre><code class="r">titles = sapply(datasets, function(x) attributes(x)$title)
+titles
+</code></pre>
+
+<pre><code>## [1] &quot;Dataset with errors in tree species&quot; &quot;How to fill a BEFdata Workbook&quot;
+</code></pre>
+
+<pre><code class="r">dataset = datasets[[1]]
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>Inspect the data</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Inspect the dataset (metadata)</li>
+</ul>
+
+<pre><code class="r">attributes(dataset)$title
+</code></pre>
+
+<pre><code>## [1] &quot;Dataset with errors in tree species&quot;
+</code></pre>
+
+<pre><code class="r">names(attributes(dataset))
+</code></pre>
+
+<pre><code>##  [1] &quot;names&quot;                    &quot;class&quot;                    &quot;row.names&quot;                &quot;title&quot;                    &quot;abstract&quot;                
+##  [6] &quot;publicationDate&quot;          &quot;language&quot;                 &quot;creators&quot;                 &quot;authors&quot;                  &quot;intellectualRights&quot;      
+## [11] &quot;distribution&quot;             &quot;keywords&quot;                 &quot;generalTaxonomicCoverage&quot; &quot;samplingDescription&quot;      &quot;spatial_coverage&quot;        
+## [16] &quot;temporal_coverage&quot;        &quot;related_material&quot;         &quot;columns&quot;
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-6" style="background:;">
+  <hgroup>
+    <h2>Inspect the data</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>About the spces column and their description</li>
+</ul>
+
+<pre><code class="r">names(dataset)
+</code></pre>
+
+<pre><code>## [1] &quot;id&quot;       &quot;species&quot;  &quot;csp&quot;      &quot;den_bran&quot; &quot;den_core&quot;
+</code></pre>
+
+<pre><code class="r">attributes(dataset)$column$description
+</code></pre>
+
+<pre><code>## [1] &quot;CSP tree individuals were marked mostly with metal tags but also additional tags were used. Very few metal tag numbers were double across CSPs. For a unique ID across CSPs see the Data Group \&quot;Tree identifier for trees in the comparative study sites\&quot;. Other projects might have used non metal tags with custom numbers. E. g., white tags might hold numbers defined for additional trees of the SP5 subproject. (id: id given in the cspCSP tree tag number)&quot;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+## [2] &quot;The scientific species fullnames are based on the \&quot;Flora of China\&quot; identified by Teng Fang and verified by Helge Bruelheide (trees) and Alexandra Efmeier (herbs). Scientific species names consist of epithet and genus. For identification, the Author name and the year of the publications of the description are required. (species: name of the species; Scientific plant species name;; ; Flora of China, Helge Bruelheide (derived from datagroup))&quot;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         
+## [3] &quot;Reasearch plots of the Biodiversity - Ecosystem functioning experiment (BEF-China). There are three main sites for research plots in the BEF Experiment: Comparative Study Plots (CSP) in the Gutianshan Nature Reserve, having a size of 30x30m^2, measured on the ground. Main Experiment plots have a size of 1 mu, which is about 25x25m^2 in horizontal projection. Pilot Study Plots have a size of 1x1 m^2. Research plots on the main experiment have a \&quot;p\&quot; in front of their IDs and then a 6 digit code: Plots in the main sites A and B are named according to their position in the original spreadsheet, in which they were designed. They consist of 6 digits: _1st digit_: Site (1:A, 2:B), _digit 2and3_: southwards row: as in spreadsheets the rows are named from the top to the bottom; _digit 4 and 5_: westward column: as in the original spreadsheet, but the letters are converted to numbers (A=01, B=02); _6th digit_: indicator, if the plot has been shifted a quarter mu. Example: \&quot;p205260\&quot;: \&quot;p\&quot; means that this is a plot that is specified. \&quot;2\&quot; means, that we are at site B. Now the coordinates of the south - west corner: \&quot;0526\&quot;. Since \&quot;e\&quot; is the fifth letter of the alphabet, this is Plot E26. The last digit \&quot;0\&quot; means that this plot was not moved by a quarter of a Mu, as some sites in Site A. The 6th digit can also indicate the subplot within the plot. \&quot;5\&quot;, \&quot;6\&quot;, \&quot;7\&quot;, \&quot;8\&quot; indicate the northwest, northeast, southeast, and southwest quarter plot respectively. (csp: name of the CSP in the Nature ReserveBEF research plot nameReasearch plots of the Biodiversity - Ecosystem functioning experiment (BEF-China). There are three main sites for research plots in the BEF Experiment: Comparative Study Plots (CSP) in the Gutianshan Nature Reserve, having a size of 30x30m^2, measured on the ground. Main Experiment plots have a size of 1 mu, which is about 25x25m^2 in horizontal projection. Pilot Study Plots have a size of 1x1 m^2. Research plots on the main experiment have a \&quot;p\&quot; in front of their IDs and then a 6 digit code: Plots in the main sites A and B are named according to their position in the original spreadsheet, in which they were designed. They consist of 6 digits: _1st digit_: Site (1:A, 2:B), _digit 2and3_: southwards row: as in spreadsheets the rows are named from the top to the bottom; _digit 4 and 5_: westward column: as in the original spreadsheet, but the letters are converted to numbers (A=01, B=02); _6th digit_: indicator, if the plot has been shifted a quarter mu. Example: \&quot;p205260\&quot;: \&quot;p\&quot; means that this is a plot that is specified. \&quot;2\&quot; means, that we are at site B. Now the coordinates of the south - west corner: \&quot;0526\&quot;. Since \&quot;e\&quot; is the fifth letter of the alphabet, this is Plot E26. The last digit \&quot;0\&quot; means that this plot was not moved by a quarter of a Mu, as some sites in Site A. The 6th digit can also indicate the subplot within the plot. \&quot;5\&quot;, \&quot;6\&quot;, \&quot;7\&quot;, \&quot;8\&quot; indicate the northwest, northeast, southeast, and southwest quarter plot respectively.; Datagroup description: Reasearch plots of the Biodiversity - Ecosystem functioning experiment (BEF-China). There are three main sites for research plots in the BEF Experiment: Comparative Study Plots (CSP) in the Gutianshan Nature Reserve, having a size of 30x30m^2, measured on the ground. Main Experiment plots have a size of 1 mu, which is about 25x25m^2 in horizontal projection. Pilot Study Plots have a size of 1x1 m^2.Research plots on the main experiment have a \&quot;p\&quot; in front of their IDs and then a 6 digit code: Plots in the main sites A and B are named according to their position in the original spreadsheet, in which they were designed. They consist of 6 digits: _1st digit_: Site (1:A, 2:B), _digit 2and3_: southwards row: as in spreadsheets the rows are named from the top to the bottom; _digit 4 and 5_: westward column: as in the original spreadsheet, but the letters are converted to numbers (A=01, B=02); _6th digit_: indicator, if the plot has been shifted a quarter mu. Example: \&quot;p205260\&quot;: \&quot;p\&quot; means that this is a plot that is specified. \&quot;2\&quot; means, that we are at site B. Now the coordinates of the south - west corner: \&quot;0526\&quot;. Since \&quot;e\&quot; is the fifth letter of the alphabet, this is Plot E26. The last digit \&quot;0\&quot; means that this plot was not moved by a quarter of a Mu, as some sites in Site A. The 6th digit can also indicate the subplot within the plot. \&quot;5\&quot;, \&quot;6\&quot;, \&quot;7\&quot;, \&quot;8\&quot; indicate the northwest, northeast, southeast, and southwest quarter plot respectively.)&quot;
+## [4] &quot;Wood density (den_bran: wood density of one branch; ;)&quot;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+## [5] &quot;Wood density (den_core: wood density of one stem wood core; ;)&quot;
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-7" style="background:;">
+  <hgroup>
+    <h2>Species names</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Prepare species list</li>
+</ul>
+
+<pre><code class="r">require(gdata)
+# or define trimmer
+trim &lt;- function (x) gsub(&quot;^\\s+|\\s+$&quot;, &quot;&quot;, x)
+species = trim(dataset$species)
+unique_species = unique(as.character(species))
+head(unique_species, 7)
+</code></pre>
+
+<pre><code>## [1] &quot;Acer amplum&quot;         &quot;Acer cdatum&quot;         &quot;Acer cordatum&quot;       &quot;Acer pubipalmatum&quot;   &quot;Adinandra millettii&quot; &quot;Adinandra milletti&quot; 
+## [7] &quot;Adinandra milletii&quot;
+</code></pre>
+
+<ul>
+<li>Load (<a href="http://ropensci.org/tutorials/taxize_tutorial.html">taxize</a>)</li>
+</ul>
+
+<pre><code class="r">require(taxize)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-8" style="background:;">
+  <hgroup>
+    <h2>Species names</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>Taxize offers access to databases like: </p>
+
+<ul>
+<li>Integrated Taxonomic Information System <a href="http://www.itis.gov/">itis</a> </li>
+<li>National Center for Biotechnology Information <a href="http://www.ncbi.nlm.nih.gov/">ncbi</a> </li>
+<li>International Union for Conservation of Nature <a href="http://www.iucn.org/">iucn</a></li>
+</ul></li>
+<li><p>But that is not all (e.g create phylogeny tree, see <a href="http://ropensci.org/tutorials/taxize_tutorial.html">tutorial</a>)</p></li>
+<li><p>Example for species resolving</p></li>
+</ul>
+
+<pre><code class="r">species_list = c(&quot;Helianthus annuus&quot;, &quot;Pinus contort&quot;)
+query_response = tnrs(query = species_list, source = &quot;iPlant_TNRS&quot;)[, -c(6:7)]
+query_response
+</code></pre>
+
+<pre><code>##       submittedname      acceptedname    sourceid score       matchedname
+## 1     Pinus contort    Pinus contorta iPlant_TNRS  0.98    Pinus contorta
+## 2 Helianthus annuus Helianthus annuus iPlant_TNRS     1 Helianthus annuus
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-9" style="background:#EEE;">
+  <hgroup>
+    <h2>Your turn</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Start R-Studio</li>
+<li>Load packages</li>
+</ul>
+
+<pre><code>require(rbefdata)
+require(taxize)
+</code></pre>
+
+<ul>
+<li>Set options (URL, Credentials)</li>
+</ul>
+
+<pre><code>bef.options()
+</code></pre>
+
+<ul>
+<li>Resolve all the species in vector unique_species (unique)</li>
+</ul>
+
+<pre><code class="r">tnrs(query = ...)
+</code></pre>
+
+<ul>
+<li>Find the entries that need correction (Hint: score! with subset())</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-10" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Check the unique names of our species list</li>
+</ul>
+
+<pre><code class="r">query_response = tnrs(query = unique_species)[, -c(6:7)]
+head(query_response,9)[c(&quot;submittedname&quot;, &quot;acceptedname&quot;, &quot;score&quot;)]
+</code></pre>
+
+<pre><code>##              submittedname             acceptedname score
+## 1              Acer amplum              Acer amplum     1
+## 2 Camellia chekiang-oleosa  Camellia chekiangoleosa  0.99
+## 3         Cleyera japonica         Cleyera japonica     1
+## 4          Albizia kalkora          Albizia kalkora     1
+## 5 Castanopsis sclerophylla Castanopsis sclerophylla     1
+## 6     Castanopsis fargesii     Castanopsis fargesii     1
+## 7        Camellia oleifera        Camellia oleifera     1
+## 8 Camellia chekiang-oleosa  Camellia chekiangoleosa     1
+## 9              Acer cdatum            Acer caudatum  0.94
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-11" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Pick the entries that are lower than 1</li>
+</ul>
+
+<pre><code class="r">query_response_need_attention = unique(subset(query_response, score &lt; 1))
+head(query_response_need_attention, 7)
+</code></pre>
+
+<pre><code>##                 submittedname            acceptedname    sourceid score             matchedname
+## 2    Camellia chekiang-oleosa Camellia chekiangoleosa iPlant_TNRS  0.99 Camellia chekiangoleosa
+## 9                 Acer cdatum           Acer caudatum iPlant_TNRS  0.94           Acer caudatum
+## 14 Chlerodendron cyrtophyllum            Clerodendrum iPlant_TNRS   0.5            Clerodendron
+## 31         Adinandra milletti     Adinandra millettii iPlant_TNRS  0.98     Adinandra millettii
+## 45            Camellia frerna       Camellia fraterna iPlant_TNRS  0.94       Camellia fraterna
+## 84      Cunninghamia laeolata Cunninghamia lanceolata iPlant_TNRS  0.96 Cunninghamia lanceolata
+## 91              Eurya murcata          Eurya muricata iPlant_TNRS  0.98          Eurya muricata
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-12" style="background:;">
+  <hgroup>
+    <h2>Match back and combine</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Match species to submitted names</li>
+</ul>
+
+<pre><code class="r">corrected_dataset = merge(dataset, query_response_need_attention[c(&quot;submittedname&quot;, &quot;acceptedname&quot;)], 
+      by.x = &quot;species&quot;, 
+      by.y = &quot;submittedname&quot;, all.x = T)
+
+head(corrected_dataset)
+</code></pre>
+
+<pre><code>##         species     id csp den_bran den_core  acceptedname
+## 1   Acer amplum 369192  18   0.5261       NA          &lt;NA&gt;
+## 2   Acer amplum 363008   2   0.5220       NA          &lt;NA&gt;
+## 3   Acer amplum 372621   4       NA   0.5589          &lt;NA&gt;
+## 4   Acer cdatum 379787   2   0.2862       NA Acer caudatum
+## 5 Acer cordatum 371236   4   0.8426   0.3427          &lt;NA&gt;
+## 6 Acer cordatum 376888  10   1.1964       NA          &lt;NA&gt;
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-13" style="background:;">
+  <hgroup>
+    <h2>Match back and combine</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>merge function picks from vectors (if else)</li>
+</ul>
+
+<pre><code class="r">merge_em &lt;- function(base_vec, merge_vec) {
+  output = vector()
+  for(i in 1:length(base_vec)) {
+    if(is.na(base_vec[i])) {
+      output[i] = merge_vec[i]
+    } else {
+      output[i] = base_vec[i]
+    }
+  }
+  return(output)
+}
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-14" style="background:;">
+  <hgroup>
+    <h2>Match back and combine</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Define base and merge vector</li>
+</ul>
+
+<pre><code class="r">base = corrected_dataset$acceptedname
+mergein = as.character(species)
+new = base[is.na(base)] &lt;- mergein[is.na(base)]
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-15" style="background:;">
+  <hgroup>
+    <h2>Match back and combine</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>create new dataframe</li>
+</ul>
+
+<pre><code class="r">merged_names = merge_em(base_vec = base, merge_vec = mergein)
+corrected_dataset = data.frame(dataset, species_corrected = merged_names)
+head(corrected_dataset, 8)
+</code></pre>
+
+<pre><code>##       id           species csp den_bran den_core species_corrected
+## 1 369192       Acer amplum  18   0.5261       NA       Acer amplum
+## 2 363008       Acer amplum   2   0.5220       NA       Acer amplum
+## 3 372621       Acer amplum   4       NA   0.5589       Acer amplum
+## 4 379787       Acer cdatum   2   0.2862       NA     Acer caudatum
+## 5 371236     Acer cordatum   4   0.8426   0.3427     Acer cordatum
+## 6 376888     Acer cordatum  10   1.1964       NA     Acer cordatum
+## 7 363098     Acer cordatum  13       NA   1.0376     Acer cordatum
+## 8 377795 Acer pubipalmatum  11   0.2244       NA Acer pubipalmatum
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-16" style="background:;">
+  <hgroup>
+    <h2>Upload dataset</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>push back a corrected version to BEFdata</p></li>
+<li><p>Please use own title if you execute this step </p></li>
+</ul>
+
+<pre><code class="r">title = &quot;Dataset with errors in tree species (corrected)&quot;
+bef.portal.upload.dataset(dataset = corrected_dataset, dataset_title = title)
+</code></pre>
+
+<pre><code>Your data has been uploaded successfully!
+You can find your dataset now under the id:3
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-17" style="background:;">
+  <hgroup>
+    <h2>Get higher taxonomic names</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>Use taxize to retrive higher taxon names</p></li>
+<li><p>Create a new dataframe </p>
+
+<ul>
+<li>corrected unique species names </li>
+<li>order</li>
+<li>family</li>
+<li>genus</li>
+</ul></li>
+<li><p>Can be used to calculate phylogenetic diversity</p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-18" style="background:;">
+  <hgroup>
+    <h2>Get higher taxonomic names</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Example on retrieving classifications</li>
+</ul>
+
+<pre><code class="r">species_examples = c(&quot;Homo sapiens&quot;, &quot;Rattus rattus&quot;)
+</code></pre>
+
+<ul>
+<li>The databases can be e.g. <a href="http://www.itis.gov/">itis</a> or <a href="http://www.ncbi.nlm.nih.gov/">ncbi</a></li>
+</ul>
+
+<pre><code class="r">classification_list = classification(species_examples, db = &quot;itis&quot;)
+classification_list[[1]]
+</code></pre>
+
+<pre><code>##             name         rank
+## 1       Animalia      Kingdom
+## 2      Bilateria   Subkingdom
+## 3  Deuterostomia Infrakingdom
+## 4       Chordata       Phylum
+## 5     Vertebrata    Subphylum
+## 6  Gnathostomata  Infraphylum
+## 7      Tetrapoda   Superclass
+## 8       Mammalia        Class
+## 9         Theria     Subclass
+## 10      Eutheria   Infraclass
+## 11      Primates        Order
+## 12   Haplorrhini     Suborder
+## 13   Simiiformes   Infraorder
+## 14    Hominoidea  Superfamily
+## 15     Hominidae       Family
+## 16     Homininae    Subfamily
+## 17          Homo        Genus
+## 18  Homo sapiens      Species
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-19" style="background:;">
+  <hgroup>
+    <h2>Get higher taxonomic names</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Get only parts of intrest</li>
+</ul>
+
+<pre><code class="r">tax_name(query = &quot;Homo Sapiens&quot;, get = &quot;genus&quot;, db = &quot;ncbi&quot;)
+</code></pre>
+
+<pre><code>##   genus
+## 1  Homo
+</code></pre>
+
+<pre><code class="r">tax_name(query = species_examples, get = &quot;family&quot;, db = &quot;ncbi&quot;)
+</code></pre>
+
+<pre><code>##      family
+## 1 Hominidae
+## 2   Muridae
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-20" style="background:#EEE;">
+  <hgroup>
+    <h2>Your turn</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><p>Get the order, family and genus from ncbi for unique corrected species</p></li>
+<li><p>Be nice and only query server once!</p>
+
+<ul>
+<li>do not use: tax_name(...)</li>
+<li>use classification(...)</li>
+</ul></li>
+<li><p>Hint: use R apply functions</p></li>
+<li><p>When finished upload the dataset to the portal!</p></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-21" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Get: 
+
+<ul>
+<li>order, family and genus (unique corrected species use &quot;ncbi&quot;)</li>
+</ul></li>
+</ul>
+
+<pre><code class="r">species_list = unique(as.character(corrected_dataset$species_corrected))
+classification_species = classification(species_list, db = &quot;ncbi&quot;)
+</code></pre>
+
+<ul>
+<li>Extract (order):</li>
+</ul>
+
+<pre><code class="r">extraction_ncbi_order = sapply(classification_species, function(x) { 
+   if(length(x) != 2){NA}else{subset(x, x$&quot;rank&quot; == &quot;order&quot;)}$&quot;name&quot;
+  })
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-22" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Extract (family):</li>
+</ul>
+
+<pre><code class="r">extraction_ncbi_family = sapply(classification_species, function(x) {
+   if(length(x) != 2){NA}else{subset(x, x$&quot;rank&quot; == &quot;family&quot;)}$&quot;name&quot; 
+  }) 
+</code></pre>
+
+<ul>
+<li>Extract (genus):</li>
+</ul>
+
+<pre><code class="r">extraction_ncbi_genus = sapply(classification_species, function(x) { 
+   if(length(x) != 2){NA}else{subset(x, x$&quot;rank&quot; == &quot;genus&quot;)}$&quot;name&quot;
+  })
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-23" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>Create data frame:</li>
+</ul>
+
+<pre><code class="r">extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, extraction_ncbi_family, extraction_ncbi_genus)
+species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
+head(species_taxonic, 5)
+</code></pre>
+
+<pre><code>##                                 species extraction_ncbi_order extraction_ncbi_family extraction_ncbi_genus
+## Acer amplum                 Acer amplum                    NA                     NA                    NA
+## Acer caudatum             Acer caudatum            Sapindales              Aceraceae                  Acer
+## Acer cordatum             Acer cordatum            Sapindales              Aceraceae                  Acer
+## Acer pubipalmatum     Acer pubipalmatum                    NA                     NA                    NA
+## Adinandra millettii Adinandra millettii              Ericales       Pentaphylacaceae             Adinandra
+</code></pre>
+
+<ul>
+<li>Upload:</li>
+</ul>
+
+<pre><code class="r">bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = &quot;Taxonomic information for species in ...&quot;)
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-24" style="background:;">
+  <hgroup>
+    <h2>Thanks four your attention</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Install packages'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='List Options (rbefdata)'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Set Options (rbefdata)'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Get data'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Inspect the data'>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title='Inspect the data'>
+         6
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=7 title='Species names'>
+         7
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=8 title='Species names'>
+         8
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=9 title='Your turn'>
+         9
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=10 title='A solution'>
+         10
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=11 title='A solution'>
+         11
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=12 title='Match back and combine'>
+         12
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=13 title='Match back and combine'>
+         13
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=14 title='Match back and combine'>
+         14
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=15 title='Match back and combine'>
+         15
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=16 title='Upload dataset'>
+         16
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=17 title='Get higher taxonomic names'>
+         17
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=18 title='Get higher taxonomic names'>
+         18
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=19 title='Get higher taxonomic names'>
+         19
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=20 title='Your turn'>
+         20
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=21 title='A solution'>
+         21
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=22 title='A solution'>
+         22
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=23 title='A solution'>
+         23
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=24 title='Thanks four your attention'>
+         24
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
