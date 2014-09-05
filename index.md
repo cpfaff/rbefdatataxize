@@ -304,9 +304,10 @@ head(query_response_need_attention, 7)
 
 
 ```r
-corrected_dataset = merge(dataset, query_response_need_attention[c("submittedname", "acceptedname")], 
-      by.x = "species", 
-      by.y = "submittedname", all.x = T)
+corrected_dataset = merge(dataset, 
+                          query_response_need_attention[c("submittedname", "acceptedname")], 
+                          by.x = "species", 
+                          by.y = "submittedname", all.x = T)
 
 head(corrected_dataset)
 ```

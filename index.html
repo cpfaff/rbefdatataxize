@@ -376,9 +376,10 @@ head(query_response_need_attention, 7)
 <li>Match species to submitted names</li>
 </ul>
 
-<pre><code class="r">corrected_dataset = merge(dataset, query_response_need_attention[c(&quot;submittedname&quot;, &quot;acceptedname&quot;)], 
-      by.x = &quot;species&quot;, 
-      by.y = &quot;submittedname&quot;, all.x = T)
+<pre><code class="r">corrected_dataset = merge(dataset, 
+                          query_response_need_attention[c(&quot;submittedname&quot;, &quot;acceptedname&quot;)], 
+                          by.x = &quot;species&quot;, 
+                          by.y = &quot;submittedname&quot;, all.x = T)
 
 head(corrected_dataset)
 </code></pre>
