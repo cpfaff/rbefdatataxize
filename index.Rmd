@@ -380,16 +380,27 @@ extraction_ncbi_genus = sapply(classification_species, function(x) {
 
 * Create data frame:
 
-```{r show_solution_dataset, eval = T, cache = T, message = F}
-extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, extraction_ncbi_family, extraction_ncbi_genus)
+```{r show_solution_dataset, eval = T, cache = T, message = F, tidy = F}
+extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, 
+                                        extraction_ncbi_family, 
+                                        extraction_ncbi_genus)
 species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
 head(species_taxonic, 5)
 ```
+
+---
+
+## A solution
 
 * Upload:
 
 ```{r solution_upload_dataset, eval = F}
 bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = "Taxonomic information for species in ...")
+```
+
+```
+Your data has been uploaded successfully!
+You can find your dataset now under the id:3
 ```
 
 ---

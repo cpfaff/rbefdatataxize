@@ -674,7 +674,9 @@ classification_species = classification(species_list, db = &quot;ncbi&quot;)
 <li>Create data frame:</li>
 </ul>
 
-<pre><code class="r">extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, extraction_ncbi_family, extraction_ncbi_genus)
+<pre><code class="r">extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, 
+                                        extraction_ncbi_family, 
+                                        extraction_ncbi_genus)
 species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
 head(species_taxonic, 5)
 </code></pre>
@@ -687,18 +689,31 @@ head(species_taxonic, 5)
 ## Adinandra millettii Adinandra millettii              Ericales       Pentaphylacaceae             Adinandra
 </code></pre>
 
-<ul>
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-24" style="background:;">
+  <hgroup>
+    <h2>A solution</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
 <li>Upload:</li>
 </ul>
 
 <pre><code class="r">bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = &quot;Taxonomic information for species in ...&quot;)
 </code></pre>
 
+<pre><code>Your data has been uploaded successfully!
+You can find your dataset now under the id:3
+</code></pre>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
 
-<slide class="" id="slide-24" style="background:;">
+<slide class="" id="slide-25" style="background:;">
   <hgroup>
     <h2>Thanks four your attention</h2>
   </hgroup>
@@ -852,8 +867,14 @@ head(species_taxonic, 5)
     </li>
     <li>
       <a href="#" target="_self" rel='tooltip' 
-        data-slide=24 title='Thanks four your attention'>
+        data-slide=24 title='A solution'>
          24
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=25 title='Thanks four your attention'>
+         25
       </a>
     </li>
   </ul>

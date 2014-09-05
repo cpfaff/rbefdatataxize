@@ -547,7 +547,9 @@ extraction_ncbi_genus = sapply(classification_species, function(x) {
 
 
 ```r
-extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, extraction_ncbi_family, extraction_ncbi_genus)
+extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, 
+                                        extraction_ncbi_family, 
+                                        extraction_ncbi_genus)
 species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
 head(species_taxonic, 5)
 ```
@@ -561,11 +563,20 @@ head(species_taxonic, 5)
 ## Adinandra millettii Adinandra millettii              Ericales       Pentaphylacaceae             Adinandra
 ```
 
+---
+
+## A solution
+
 * Upload:
 
 
 ```r
 bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = "Taxonomic information for species in ...")
+```
+
+```
+Your data has been uploaded successfully!
+You can find your dataset now under the id:3
 ```
 
 ---
