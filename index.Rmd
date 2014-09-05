@@ -207,7 +207,7 @@ head(query_response_need_attention, 7)
 
 * Match species to submitted names
 
-```{r match_back_corrected_species_one, eval = T, message = F, cache = T}
+```{r match_back_corrected_species_one, eval = T, message = F, cache = T, tidy = F}
 corrected_dataset = merge(dataset, 
                           query_response_need_attention[c("submittedname", "acceptedname")], 
                           by.x = "species", 
