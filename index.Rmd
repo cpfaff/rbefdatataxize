@@ -120,7 +120,7 @@ require(rbefdata)
 * Get your [credentials](http://stage.china.befdata.biow.uni-leipzig.de/profile)
   - Check your profile page
 
-* Set the [URL](stage.china.befdata.biow.uni-leipzig.de) to the BEFdata server (`bef.options()`)
+* Set the [URL](stage.china.befdata.biow.uni-leipzig.de) to the BEFdata server
   - Check the URL of the BEFdata instance
   - `bef.options(...)`
 
@@ -129,7 +129,7 @@ require(rbefdata)
 
 ---
 
-## Get data
+## Get the data
 
 ```{r, eval = F}
 # the id can be found in the url of the dataset
@@ -163,7 +163,7 @@ names(attributes(dataset))
 
 ---
 
-## Inspect data
+## Inspect the data
 
 * Get detailed information
   - On the columns
@@ -332,7 +332,7 @@ kable(head(merged_dataset_family, 2))
 
 ---
 
-## Solution
+## Your turn (solution)
 
 ```{r solutionCarbonNitrogenOverFamily, cache = T, eval = T, messages = F}
 unique_species = unique(dataset$SpeciesFull)
