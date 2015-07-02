@@ -2,7 +2,7 @@
 title       : A workflow with
 subtitle    : BEFdata + rBEFdata + taxize
 author      : Claas-Thido Pfaff
-job         : 
+job         : Also showcasing other useful tools (plyr)
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
 highlighter : highlight.js  # {highlight.js, prettify, highlight}
 hitheme     : tomorrow      # 
@@ -12,397 +12,375 @@ knit        : slidify::knit2slides
 ---
 
 
-```{r setup, cache = F, include = F, eval = T}
+```{r setup, cache =F, include = F, eval = T}
+opts_chunk$set(cache = F)
+hook_output = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+    if (!is.null(n <- options$out.lines)) {
+        x = unlist(stringr::str_split(x, "\n"))
+        if (length(x) > n) {
+            # truncate the output
+            x = c(head(x, n), "....\n")
+        }
+        x = paste(x, collapse = "\n")  # paste first n lines together
+    }
+    hook_output(x, options)
+})
+
 # install.packages("devtools")
 require(devtools)
 # install_github(username = "befdata", repo = "rbefdata", subdir = "rbefdata")
 require(rbefdata)
-#devtools::install_github(c("sckott/XMLSchema", "sckott/SSOAP"))
-#devtools::install_github("taxize", "ropensci")
-#install.packages("taxize")
+# devtools::install_github(c("sckott/XMLSchema", "sckott/SSOAP"))
+# devtools::install_github("taxize", "ropensci")
+# install.packages("taxize")
 require(taxize)
-#remove.packages("taxize")
-# install.packages("gdata")
+require(knitr)
+require(plyr)
 require(gdata)
 # set options
-options("width"=155)
+options("width"=90)
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+squish <- function(x) gsub("\\s+", " ", x)
 ```
 
-## Install packages
+## Prerequisites
 
-* rbefdata (interface to BEFdata)
+* Packages
 
 ```{r install_rbefdata, eval = F}
 install.packages("rbefdata")
 ```
 
-* taxize (taxonomy tasks)
-
 ```{r install_taxize, eval = F}
 install.packages("taxize")
 ```
 
-* Trim (leading/trailing spaces)
+```{r install_other_packages, eval = F}
+install.packages(c("gdata", "plyr"))
+```
 
-```{r install_gdata, eval = F}
-install.packages("gdata")
-# or use that one as trimmer:
+* String cleaning helpers
+
+```{r define_helpers, eval = F}
+# leading/trailing spaces
 trim <- function (x) gsub("^\\s+|\\s+$", "", x)
+# multiple spaces
+squish <- function(x) gsub("\\s+", " ", x)
 ```
 
 ---
 
-## List Options (rbefdata)
+## List options (rbefdata)
 
-
-```{r eval = T}
+```{r, cache = F}
 require(rbefdata)
 bef.options()
 ```
 
 ---
 
-## Set Options (rbefdata)
+## Set options (rbefdata)
 
 - The URL ([Workshop Portal](http://stage.china.befdata.biow.uni-leipzig.de))
+  - Which server to communicate with
+  - Here you would set your own URL
 
-```{r eval = T}
+```{r eval = T, cache = F}
 bef.options(url = "http://stage.china.befdata.biow.uni-leipzig.de")
 ```
 
 - The credentials ([Your profile](http://stage.china.befdata.biow.uni-leipzig.de/profile))
+  - Needed for authentication
+  - At least for restricted datasets
 
-```{r eval = T}
-bef.options(user_credentials = "y9H5uaC65fr1qCNdk0H1")
+```{r eval = T, cache = F}
+bef.options(user_credentials = "Pcz3lXF82FDULZP2GG29")
 ```
 
 ---
-  
-## Get data
-  
-* Get dataset from [proposal](http://stage.china.befdata.biow.uni-leipzig.de/paperproposals/1) with id #1 
 
-```{r get_dataset, eval = T, cache = T}
-datasets = bef.portal.get.datasets.for_proposal(id = 1)
-length(datasets)
-titles = sapply(datasets, function(x) attributes(x)$title)
-titles
-dataset = datasets[[1]]
+## Set options (rbefdata)
+
+```{r}
+bef.options()
+```
+
+--- bg:#EEE
+
+## Your turn
+
+* Fire up R-Studio
+* Load the `rbefdata` package
+
+```{r loadrbefdata, eval = F}
+require(rbefdata)
+```
+
+* Get your [credentials](http://stage.china.befdata.biow.uni-leipzig.de/profile)
+  - Check your profile page
+
+* Set the [URL](stage.china.befdata.biow.uni-leipzig.de) to the BEFdata server (`bef.options()`)
+  - Check the URL of the BEFdata instance
+  - `bef.options(...)`
+
+* Set the Credentials 
+  - `bef.options(...)`
+
+---
+
+## Get data
+
+```{r, eval = F}
+# the id can be found in the url of the dataset
+bef.portal.get.dataset_by(id = xx)
+```
+
+* Get dataset from the [portal](http://stage.china.befdata.biow.uni-leipzig.de/datasets/6) with id #6
+
+```{r get_dataset, cache = F}
+dataset = bef.portal.get.dataset_by(id = 6)
+```
+
+```{r, eval = F}
+head(dataset, 4)
+```
+
+```{r kable_head_of_dataset, echo = F}
+kable(head(dataset, 4))
 ```
 
 ---
 
 ## Inspect the data
 
-* Inspect the dataset (metadata)
+* Inspect data (metadata)
   
-```{r get_dataset_metadata, eval = T}
+```{r get_dataset_metadata, eval = T, tidy = F}
 attributes(dataset)$title
 names(attributes(dataset))
 ```
 
 ---
 
-## Inspect the data
+## Inspect data
 
-* About the spces column and their description
+* Get detailed information
+  - On the columns
 
 ```{r get_column_description, eval = T, tidy=FALSE}
 names(dataset)
 attributes(dataset)$column$description
 ```
 
----
+--- bg:#EEE
 
-## Species names
+## Your turn
 
-* Prepare species list
+* Get the dataset with the id = 6
+  - use `bef.portal.get.dataset_by(id)`
+  - Save it to a variable 
 
-```{r extract_species_list, eval = T}
-require(gdata)
-# or define trimmer
-trim <- function (x) gsub("^\\s+|\\s+$", "", x)
-species = trim(dataset$species)
-unique_species = unique(as.character(species))
-head(unique_species, 7)
+* Inspect the dataset metadata
+  - find the creator and save it to a variable
+  - find the intellectual rights and save it to a variable
+  - hint: use `attributes()` and `names()`
+
+--- bg:#EEE
+
+## Your turn (solution)
+
+* Download
+
+```{r, eval = F}
+dataset = bef.portal.get.dataset_by(id = 6)
 ```
 
-* Load ([taxize](http://ropensci.org/tutorials/taxize_tutorial.html))
+* Creator and intellectual rights
 
-```{r require_taxize, eval = F}
-require(taxize)
+```{r}
+attributes(dataset)$creators
+attributes(dataset)$intellectualRights
 ```
 
 ---
 
-## Species names
+## Aggregate (plyr)
 
-* Taxize offers access to databases like: 
+* Load the package
+
+```{r plyr, eval = F}
+require(plyr)
+```
+
+* Syntax
+
+```{r, eval = F}
+ddply(data.frame, variable(s), function, optional arguments)
+# summarise vs transform
+```
+
+* Clean the column
+
+```{r}
+# clean the species column 
+dataset$SpeciesFull = trim(dataset$SpeciesFull)
+dataset$SpeciesFull = squish(dataset$SpeciesFull)
+```
+
+---
+
+## Aggregate (plyr)
+
+* Aggregate by Species full calculate mean c/n ratio
+
+```{r, cache = F}
+aggregated_dataset = ddply(dataset, .(SpeciesFull), summarise, 
+                           CarbonNitrogenRatio = mean(Carbon/Nitrogen))
+```
+
+* Lets have a look
+
+```{r, eval = F}
+head(aggregated_dataset, 4)
+```
+
+```{r, echo = F}
+kable(head(aggregated_dataset, 4))
+```
+
+---
+
+## Use taxize (taxonomic tool-belt)
+
+* Taxize offers access to various databases
     - Integrated Taxonomic Information System [itis](http://www.itis.gov/) 
     - National Center for Biotechnology Information [ncbi](http://www.ncbi.nlm.nih.gov/) 
     - International Union for Conservation of Nature [iucn](http://www.iucn.org/)
 
 * But that is not all (e.g create phylogeny tree, see [tutorial](http://ropensci.org/tutorials/taxize_tutorial.html))
 
-* Example for species resolving
 
-```{r example_species_name_resolving, eval = T, cache = T, message = F}
-species_list = c("Helianthus annuus", "Pinus contort")
-query_response = tnrs(query = species_list, source = "iPlant_TNRS")[, -c(6:7)]
-query_response
-```
+* Load ([taxize](http://ropensci.org/tutorials/taxize_tutorial.html))
 
---- bg:#EEE
-
-## Your turn
-
-* Start R-Studio
-* Load packages
-
-```
-require(rbefdata)
+```{r require_taxize, eval = F, messages = F}
 require(taxize)
 ```
 
-* Set options (URL, Credentials)
-
-```
-bef.options()
-```
-
-* Resolve all the species in vector unique_species (unique)
-
-```{r eval = F}
-tnrs(query = ...)
-```
-
-* Find the entries that need correction (Hint: score! with subset())
+* e.g. retrieve higher taxonomic names, synonyms and many more
 
 ---
 
-## A solution 
+## Use taxize (taxonomic tool-belt)
 
-* Check the unique names of our species list
+* Get family names
 
-```{r resolv_our_unique_names, eval = T, message = F, cache = T}
-query_response = tnrs(query = unique_species)[, -c(6:7)]
-head(query_response,9)[c("submittedname", "acceptedname", "score")]
+```{r, cache = T, messages = F}
+ncbi_family_names = tax_name(query = aggregated_dataset$SpeciesFull, 
+                             get = "family", 
+                             db = "ncbi", 
+                             verbose = F)
 ```
 
---- 
+* Lets check that out
 
-## A solution 
-
-* Pick the entries that are lower than 1
-
-```{r find_potential_wrong, eval = T, message = F, cache = T}
-query_response_need_attention = unique(subset(query_response, score < 1))
-head(query_response_need_attention, 7)
+```{r, eval = F}
+head(ncbi_family_names, 3)
 ```
 
---- 
-
-## Match back and combine
-
-* Match species to submitted names
-
-```{r match_back_corrected_species_one, eval = T, message = F, cache = T, tidy = F}
-corrected_dataset = merge(dataset, 
-                          query_response_need_attention[c("submittedname", "acceptedname")], 
-                          by.x = "species", 
-                          by.y = "submittedname", all.x = T)
-
-head(corrected_dataset)
+```{r, echo = F}
+kable(head(ncbi_family_names, 3))
 ```
 
 ---
 
-## Match back and combine 
+## Use taxize (taxonomic tool-belt)
 
-* merge function picks from vectors (if else)
+* Combine
 
-```{r merge_function, eval = T, cache = T}
-merge_em <- function(base_vec, merge_vec) {
-  output = vector()
-  for(i in 1:length(base_vec)) {
-    if(is.na(base_vec[i])) {
-      output[i] = merge_vec[i]
-    } else {
-      output[i] = base_vec[i]
-    }
-  }
-  return(output)
-}
+```{r}
+aggregated_dataframe_family = data.frame(aggregated_dataset, 
+                                         FamilyNames = ncbi_family_names$family)
 ```
 
----
-
-## Match back and combine 
-
-* Define base and merge vector
-
-```{r base_and_mergin}
-base = corrected_dataset$acceptedname
-mergein = as.character(species)
-new = base[is.na(base)] <- mergein[is.na(base)]
+```{r, echo = F}
+kable(head(aggregated_dataframe_family, 2))
 ```
 
----
+* Merge
 
-## Match back and combine
-
-* create new dataframe
-
-```{r prepare_merge, eval = T}
-merged_names = merge_em(base_vec = base, merge_vec = mergein)
-corrected_dataset = data.frame(dataset, species_corrected = merged_names)
-head(corrected_dataset, 8)
+```{r}
+merged_dataset_family = merge(dataset, aggregated_dataframe_family[c(1,3)], by = "SpeciesFull")
 ```
 
----
-
-## Upload dataset
-
-* push back a corrected version to BEFdata
-
-* Please use own title if you execute this step 
-
-```{r upload_corrected, eval = F}
-title = "Dataset with errors in tree species (corrected)"
-bef.portal.upload.dataset(dataset = corrected_dataset, dataset_title = title)
-```
-
-```
-Your data has been uploaded successfully!
-You can find your dataset now under the id:3
-```
-
----
-
-## Get higher taxonomic names
-
-* Use taxize to retrive higher taxon names
-
-* Create a new dataframe 
-     - corrected unique species names 
-     - order
-     - family
-     - genus
-
-* Can be used to calculate phylogenetic diversity
-
----
-
-## Get higher taxonomic names
-
-* Example on retrieving classifications
-
-```{r example_higher_names_one, eval = T, message = F}
-species_examples = c("Homo sapiens", "Rattus rattus")
-```
-
-* The databases can be e.g. [itis](http://www.itis.gov/) or [ncbi](http://www.ncbi.nlm.nih.gov/)
-
-```{r example_higher_names_two, eval = T, message = F, cache = T}
-classification_list = classification(species_examples, db = "itis")
-classification_list[[1]]
-```
-
----
-
-## Get higher taxonomic names
-
-* Get only parts of intrest
-
-```{r example_higher_names_three, eval = T, message = F, cache = T}
-tax_name(query = "Homo Sapiens", get = "genus", db = "ncbi")
-tax_name(query = species_examples, get = "family", db = "ncbi")
+```{r, echo = F}
+kable(head(merged_dataset_family, 2))
 ```
 
 --- bg:#EEE
 
 ## Your turn
 
-* Get the order, family and genus from ncbi for unique corrected species
-    
-* Be nice and only query server once!
-    - do not use: tax_name(...)
-    - use classification(...)
-
-* Hint: use R apply functions
-    
-* When finished upload the dataset to the portal!
-
----
-
-## A solution
-
-* Get: 
-    - order, family and genus (unique corrected species use "ncbi")
-
-```{r solution_higher_names, eval = T, tidy = F, cache = T, message = F}
-species_list = unique(as.character(corrected_dataset$species_corrected))
-classification_species = classification(species_list, db = "ncbi")
-```
-
-* Extract (order):
-
-```{r extract, eval = T, cache = T, tidy = F}
-extraction_ncbi_order = sapply(classification_species, function(x) { 
-   if(length(x) != 2){NA}else{subset(x, x$"rank" == "order")}$"name"
-  })
-```
+* Use `unique()` species names to retrieve the family 
+  - use the function `tax_name` from the taxize package
+  - set the parameters `get="family"`, `db="ncbi"`
+* Merge family names back to the downloaded dataframe 
+  - use `merge()` function
+* Aggregate a mean carbon/nitrogen ratio on family level
+  - Use `ddply(dataset, .(ColumnName), function, newColumn = ...)` function 
+  - Try out summarise vs transform as function in the ddply call
 
 ---
 
-## A solution
+## Solution
 
-* Extract (family):
-
-```{r extract_two, eval = T, cache = T, tidy = F}
-extraction_ncbi_family = sapply(classification_species, function(x) {
-   if(length(x) != 2){NA}else{subset(x, x$"rank" == "family")}$"name" 
-  }) 
+```{r solutionCarbonNitrogenOverFamily, cache = T, eval = T, messages = F}
+unique_species = unique(dataset$SpeciesFull)
+ncbi_family_names = tax_name(query = unique_species, 
+                             get = "family", 
+                             db = "ncbi", verbose = F)
+names(ncbi_family_names) = c("db", "SpeciesFull", "FamilyNames")
+merged_dataset_family = merge(dataset, ncbi_family_names[c(2,3)], by = "SpeciesFull")
+aggregated_dataset = ddply(merged_dataset_family, .(FamilyNames), summarise, 
+                           CarbonNitrogenRatio = mean(Carbon/Nitrogen))
 ```
 
-* Extract (genus):
 
-```{r extract_three, eval = T, cache = T, tidy = F}
-extraction_ncbi_genus = sapply(classification_species, function(x) { 
-   if(length(x) != 2){NA}else{subset(x, x$"rank" == "genus")}$"name"
-  })
+```{r, echo = F}
+kable(head(aggregated_dataset, 4))
 ```
 
 ---
 
-## A solution
+## Upload dataset (rBEFdata)
 
-* Create data frame:
+* Upload the data to the portal
 
-```{r show_solution_dataset, eval = T, cache = T, message = F, tidy = F}
-extraction_ncbi_order_fam_genus = cbind(extraction_ncbi_order, 
-                                        extraction_ncbi_family, 
-                                        extraction_ncbi_genus)
-species_taxonic = data.frame(species = species_list, extraction_ncbi_order_fam_genus)
-head(species_taxonic, 5)
+```{r, eval = F}
+# provide a dataset and title
+bef.portal.upload.dataset(...)
 ```
 
----
+* Upload the aggregated carbon/nitrogen dataset 
 
-## A solution
-
-* Upload:
-
-```{r solution_upload_dataset, eval = F}
-bef.portal.upload.dataset(dataset = species_taxonic, dataset_title = "Taxonomic information for species in ...")
+```{r upload_corrected, eval = F}
+title = "Carbon nitrogen ratio by family (claas)"
+bef.portal.upload.dataset(dataset = aggregated_dataset, dataset_title = title)
 ```
 
 ```
 Your data has been uploaded successfully!
-You can find your dataset now under the id:3
+You can find your dataset now under the id:7
 ```
+
+--- bg:#EEE
+
+## Your turn
+
+* Upload the new dataset to the BEFdata server
+  - Provide an own unique title (Maybe add your name in the title) 
+  - use: `bef.portal.upload.dataset(dataset = , dataset_title = )
 
 ---
 
-## Thanks four your attention 
+## Thanks four your attention
